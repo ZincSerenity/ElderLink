@@ -1,13 +1,20 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/local_client";
 import { lovable } from "@/integrations/lovable/index";
 import { useLang } from "@/lib/i18n";
 import { toast } from "sonner";
 import { Mail, Phone, ArrowLeft, Loader2 } from "lucide-react";
 
+type Mode = "signin" | "signup";
+type Method = "email" | "phone";
+
+// 使用原生路徑解析，避免 TypeScript TS2307 靜態資產錯誤
+const logoIcon = new URL("../assets/icon.png", import.meta.url).href;
+
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>) => ({
+  // 精準約束回傳的物件型別，徹底解決 TS2345 寬鬆字串錯誤
+  validateSearch: (search: Record<string, unknown>): { mode: Mode } => ({
     mode: search.mode === "signup" ? "signup" : "signin",
   }),
   head: () => ({
@@ -19,29 +26,26 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-type Mode = "signin" | "signup";
-type Method = "email" | "phone";
-
 function AuthPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
   const { lang } = useLang();
+  
   const [mode, setMode] = useState<Mode>(() => {
     if (typeof window === "undefined") return search.mode;
-    return new URLSearchParams(window.location.search).get("mode") === "signup" ? "signup" : search.mode;
+    const urlMode = new URLSearchParams(window.location.search).get("mode");
+    return urlMode === "signup" ? "signup" : search.mode;
   });
+  
   const [method, setMethod] = useState<Method>("email");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const tr = (zh: string, en: string) => (lang === "zh" ? zh : en);
 
-  // Redirect if already signed in
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) navigate({ to: "/" });
@@ -83,47 +87,6 @@ function AuthPage() {
     }
   }
 
-  async function handlePhoneSend(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOtp({ phone });
-      if (error) throw error;
-      setOtpSent(true);
-      toast.success(tr("驗證碼已傳送", "Code sent"));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      toast.error(message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handlePhoneVerify(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.verifyOtp({ phone, token: otp, type: "sms" });
-      if (error) throw error;
-
-      // Save name for new phone sign-ups
-      if (mode === "signup" && name.trim()) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          await supabase.from("profiles").update({ display_name: name.trim() }).eq("id", user.id);
-        }
-      }
-
-      toast.success(tr("登入成功！", "Signed in!"));
-      navigate({ to: "/" });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      toast.error(message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   async function handleGoogle() {
     setLoading(true);
     try {
@@ -151,21 +114,26 @@ function AuthPage() {
 
       <div className="max-w-md mx-auto w-full">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-3xl bg-primary mx-auto flex items-center justify-center text-primary-foreground font-display text-3xl shadow-md mb-3">EL</div>
+          {/* 精緻圓形紅白品牌標誌 */}
+          <div className="w-16 h-16 rounded-full bg-white mx-auto flex items-center justify-center shadow-md mb-3 overflow-hidden">
+            <img src={logoIcon} alt="ElderLink Logo" className="w-full h-full object-cover" />
+          </div>
           <h1 className="font-display text-3xl">{mode === "signin" ? tr("登入", "Sign in") : tr("註冊", "Sign up")}</h1>
           <p className="text-muted-foreground mt-2 text-lg">{tr("歡迎來到 ElderLink", "Welcome to ElderLink")}</p>
         </div>
 
-        {/* Method toggle */}
+        {/* 登入渠道切換 */}
         <div className="grid grid-cols-2 gap-2 mb-5 bg-secondary p-1 rounded-2xl">
           <button
-            onClick={() => { setMethod("email"); setOtpSent(false); }}
+            type="button"
+            onClick={() => setMethod("email")}
             className={`py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2 ${method === "email" ? "bg-card shadow" : "text-muted-foreground"}`}
           >
             <Mail className="w-5 h-5" /> {tr("電郵", "Email")}
           </button>
           <button
-            onClick={() => { setMethod("phone"); }}
+            type="button"
+            onClick={() => setMethod("phone")}
             className={`py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2 ${method === "phone" ? "bg-card shadow" : "text-muted-foreground"}`}
           >
             <Phone className="w-5 h-5" /> {tr("電話", "Phone")}
@@ -180,7 +148,7 @@ function AuthPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={tr("你個名（例如：王伯伯）", "Your name")}
-                className="w-full px-4 py-4 rounded-2xl bg-secondary border border-border text-lg"
+                className="w-full px-4 py-4 rounded-2xl bg-secondary border border-border text-lg outline-none focus:border-primary"
               />
             )}
             <input
@@ -189,7 +157,7 @@ function AuthPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder={tr("電郵", "Email")}
-              className="w-full px-4 py-4 rounded-2xl bg-secondary border border-border text-lg"
+              className="w-full px-4 py-4 rounded-2xl bg-secondary border border-border text-lg outline-none focus:border-primary"
             />
             <input
               type="password"
@@ -198,7 +166,7 @@ function AuthPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={tr("密碼（至少 6 個字）", "Password (min 6 chars)")}
-              className="w-full px-4 py-4 rounded-2xl bg-secondary border border-border text-lg"
+              className="w-full px-4 py-4 rounded-2xl bg-secondary border border-border text-lg outline-none focus:border-primary"
             />
             <button
               type="submit"
@@ -212,24 +180,24 @@ function AuthPage() {
         )}
 
         {method === "phone" && (
-          <div className="text-center py-8 space-y-3">
+          <div className="text-center py-8 space-y-3 bg-card border border-border rounded-2xl p-5 shadow-sm">
             <div className="w-14 h-14 rounded-full bg-secondary mx-auto flex items-center justify-center">
               <Phone className="w-7 h-7 text-muted-foreground" />
             </div>
             <h3 className="font-semibold text-lg">{tr("手機驗證即將推出", "Phone login coming soon")}</h3>
-            <p className="text-muted-foreground px-4">{tr("請先用電郵或 Google 登入", "Please sign in with Email or Google for now")}</p>
+            <p className="text-muted-foreground px-4 text-sm leading-relaxed">{tr("請先用電郵或 Google 登入", "Please sign in with Email or Google for now")}</p>
           </div>
         )}
 
-        {/* Divider */}
         <div className="flex items-center gap-3 my-5">
           <div className="flex-1 h-px bg-border" />
           <span className="text-muted-foreground text-sm">{tr("或者", "or")}</span>
           <div className="flex-1 h-px bg-border" />
         </div>
 
-        {/* Google */}
+        {/* 第三方 Google 快捷登入 */}
         <button
+          type="button"
           onClick={handleGoogle}
           disabled={loading}
           className="w-full py-4 rounded-2xl bg-card border-2 border-border font-semibold text-lg shadow-sm active:scale-95 transition disabled:opacity-60 flex items-center justify-center gap-3"
@@ -243,7 +211,6 @@ function AuthPage() {
           {tr("用 Google 登入", "Continue with Google")}
         </button>
 
-        {/* Toggle mode */}
         <div className="text-center mt-6">
           <button
             type="button"

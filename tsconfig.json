@@ -5,6 +5,7 @@
     "jsx": "react-jsx",
     "module": "ESNext",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    
     // Removed vite/client from types to avoid "Cannot find type definition file for 'vite/client'" errors
     // If you have Vite's types installed, you can re-enable this.
 

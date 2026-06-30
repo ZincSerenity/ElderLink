@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { useEffect, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { useAuth } from "@/hooks/use-auth";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/local_client";
 import { Users, AlertTriangle, CheckCircle2, MessageCircle, Link2, Clock } from "lucide-react";
 
 export const Route = createFileRoute("/family")({ component: FamilyPage });
@@ -69,7 +69,12 @@ function FamilyPage() {
           <p className="text-muted-foreground mt-2">
             {lang === "zh" ? "請先登入查看屋企人嘅打卡同訊息" : "Sign in to see your family's check-ins and messages"}
           </p>
-          <Link to="/auth" className="inline-block mt-5 px-6 py-3 rounded-full bg-primary text-primary-foreground font-semibold">
+          {/* 👈 核心修正：此處已加入 search 參數滿足強型別檢查 */}
+          <Link 
+            to="/auth" 
+            search={{ mode: "signin" }} 
+            className="inline-block mt-5 px-6 py-3 rounded-full bg-primary text-primary-foreground font-semibold"
+          >
             {lang === "zh" ? "登入" : "Sign in"}
           </Link>
         </section>
@@ -106,8 +111,12 @@ function FamilyPage() {
             <p className="text-muted-foreground mt-1">
               {lang === "zh" ? "用邀請碼連結，雙方都可以發起" : "Use an invite code — either side can start"}
             </p>
-            <Link to="/link" className="inline-block mt-4 px-5 py-2.5 rounded-full bg-primary text-primary-foreground font-semibold">
-              {lang === "zh" ? "去連結" : "Get linked"}
+            <Link 
+              to="/auth" 
+              search={{ mode: "signin" }} // 👈 核心修正：將 "login" 改為 "signin"
+              className="inline-block mt-5 px-6 py-3 rounded-full bg-primary text-primary-foreground font-semibold"
+            >
+              {lang === "zh" ? "登入" : "Sign in"}
             </Link>
           </div>
         ) : rows.map((r) => {

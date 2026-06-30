@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { useAuth } from "@/hooks/use-auth";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/local_client";
 import { ArrowLeft, Send, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/family/$userId")({ component: FamilyThread });

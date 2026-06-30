@@ -10,9 +10,18 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const isPublic = PUBLIC_PATHS.has(pathname);
 
+// src/components/AuthGate.tsx
+
   useEffect(() => {
-    if (!loading && !user && !isPublic) {
-      navigate({ to: "/auth", replace: true });
+  if (!loading && !user && !isPublic) {
+    navigate({ 
+      to: "/auth", 
+      replace: true, 
+      search: (prev: any) => ({
+        ...prev,
+        mode: prev.mode ?? "signin" // 👈 這裡也同步改為 "signin"
+      }) 
+     });
     }
   }, [loading, user, isPublic, navigate]);
 

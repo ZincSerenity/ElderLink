@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { useEffect, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { useAuth } from "@/hooks/use-auth";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/local_client";
 import { toast } from "sonner";
 import { Copy, Link2, ArrowLeft } from "lucide-react";
 
