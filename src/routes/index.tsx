@@ -8,10 +8,6 @@ import { useEffect, useState, useMemo } from "react";
 import { useLang } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/local_client";
 
-// 👈 核心修正：console.log 必須在 import 下方，否則 Vercel 打包會出錯
-console.log("Current Supabase URL:", (import.meta as any).env.VITE_SUPABASE_URL);
-console.log("DEBUG: Using URL:", (import.meta as any).env.VITE_SUPABASE_URL);
-
 export const Route = createFileRoute("/")({
   component: Home,
   head: () => ({
@@ -120,6 +116,7 @@ function Dashboard() {
           <div className="relative">
             <p className="opacity-90">{t("home.points")}</p>
             <p className="text-5xl font-display mt-1">{totalPoints.toLocaleString()} {t("home.pointsUnit")}</p>
+            
             <div className="mt-4 h-2 bg-white/20 rounded-full overflow-hidden">
               <div className="h-full bg-[var(--gold)] rounded-full transition-all duration-500" style={{ width: `${progressPercentage}%` }} />
             </div>

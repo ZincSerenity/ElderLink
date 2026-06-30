@@ -69,10 +69,10 @@ function FamilyPage() {
           <p className="text-muted-foreground mt-2">
             {lang === "zh" ? "請先登入查看屋企人嘅打卡同訊息" : "Sign in to see your family's check-ins and messages"}
           </p>
-          {/* 👈 核心修正：此處已加入 search 參數滿足強型別檢查 */}
+          {/* 👈 核心修正：加入 search 參數滿足強型別 */}
           <Link 
             to="/auth" 
-            search={{ mode: "signin" }} 
+            search={{ mode: "signin" }}
             className="inline-block mt-5 px-6 py-3 rounded-full bg-primary text-primary-foreground font-semibold"
           >
             {lang === "zh" ? "登入" : "Sign in"}
@@ -111,12 +111,8 @@ function FamilyPage() {
             <p className="text-muted-foreground mt-1">
               {lang === "zh" ? "用邀請碼連結，雙方都可以發起" : "Use an invite code — either side can start"}
             </p>
-            <Link 
-              to="/auth" 
-              search={{ mode: "signin" }} // 👈 核心修正：將 "login" 改為 "signin"
-              className="inline-block mt-5 px-6 py-3 rounded-full bg-primary text-primary-foreground font-semibold"
-            >
-              {lang === "zh" ? "登入" : "Sign in"}
+            <Link to="/link" className="inline-block mt-4 px-5 py-2.5 rounded-full bg-primary text-primary-foreground font-semibold">
+              {lang === "zh" ? "去連結" : "Get linked"}
             </Link>
           </div>
         ) : rows.map((r) => {
