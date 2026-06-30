@@ -7,7 +7,6 @@ const logoIcon = new URL("../assets/icon.png", import.meta.url).href;
 export function LandingPage() {
   const { lang, setLang, t } = useLang();
 
-  // 預備一組精美的特色功能介紹資料（支援中英文切換）
   const introFeatures = [
     {
       icon: CheckCircle2,
@@ -148,7 +147,6 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* Footer */}
         <footer className="text-center text-xs text-muted-foreground border-t border-border pt-6 mt-4">
           <p>&copy; {new Date().getFullYear()} ElderLink. All rights reserved.</p>
         </footer>
