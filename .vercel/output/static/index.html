@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>ElderLink</title>
+    
+    <script>
+      // 1. 淨化路徑，將 /index.html 轉向為標準的 / 根目錄
+      if (window.location.pathname.endsWith('index.html')) {
+        const cleanPath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('index.html'));
+        window.history.replaceState(null, '', cleanPath + window.location.search + window.location.hash);
+      }
+      // 2. 注入空的水合結構，徹底欺騙並跳過 TanStack Start 的 SSR 檢查
+      window.__TSR_DEHYDRATED__ = { state: { matches: [] } };
+    </script>
+
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/assets/index.js"></script>
+  </body>
+</html>
